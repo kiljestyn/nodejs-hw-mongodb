@@ -13,8 +13,10 @@ import {
   updateContactSchema,
 } from '../validation/contacts.js';
 import { validateMongoId } from '../middlewares/validateMongoId.js';
+import { authenticate } from '../middlewares/authenticate.js';
 
-const contactsRouter = Router();
+export const contactsRouter = Router();
+contactsRouter.use('/', authenticate);
 contactsRouter.use('/contacts/:contactId', validateMongoId('contactId'));
 
 contactsRouter.get('/contacts', ctrlWrapper(getAllContactsController));
@@ -40,5 +42,3 @@ contactsRouter.delete(
   '/contacts/:contactId',
   ctrlWrapper(deleteContactController),
 );
-
-export default contactsRouter;
