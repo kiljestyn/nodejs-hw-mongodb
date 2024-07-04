@@ -1,9 +1,13 @@
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+
 import { UsersCollection } from '../db/models/user.js';
 import createHttpError from 'http-errors';
 import { randomBytes } from 'crypto';
 import { SessionsCollection } from '../db/models/session.js';
-import { FIFTEEN_MINUTES, ONE_MONTH } from '../constants/index.js';
+import { FIFTEEN_MINUTES, ONE_MONTH, SMTP } from '../constants/index.js';
+import { env } from '../utils/env.js';
+import { sendEmail } from '../utils/sendMail.js';
 
 export const registerUser = async (payload) => {
   const user = await UsersCollection.findOne({ email: payload.email });
@@ -83,4 +87,37 @@ export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
     userId: session.userId,
     ...newSession,
   });
+};
+
+export const requestResetToken = async (email) => {
+  const user = await UsersCollection.findOne({ email });
+  if (!user) {
+    throw createHttpError(404, 'User not found');
+  }
+  const resetToken = jwt.sign(
+    {
+      sub: user._id,
+      email,
+    },
+    env('JWT_SECRET'),
+    {
+      expiresIn: '15m',
+    },
+  );
+
+  try {
+    await sendEmail({
+      from: env('SMTP_FROM'),
+      to: email,
+      subject: 'Reset your password',
+      html: `<p>Click <a href="${env(
+        'APP_DOMAIN',
+      )}auth/reset-pwd?token=${resetToken}">here</a> to reset your password!</p>`,
+    });
+  } catch (err) {
+    throw createHttpError(
+      500,
+      'Failed to send the email, please try again later.',
+    );
+  }
 };
