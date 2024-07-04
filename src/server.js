@@ -4,8 +4,7 @@ import cors from 'cors';
 import { env } from './utils/env.js';
 import { notFoundHandler } from './middlewares/notFoundHandler.js';
 import { errorHandler } from './middlewares/errorHandler.js';
-import router from './routers/index.js';
-import cookieParser from 'cookie-parser';
+import rootRouter from './routers/index.js';
 
 const PORT = Number(env('PORT', '3000'));
 
@@ -27,20 +26,11 @@ export const setupServer = () => {
       type: ['application/json', 'application/vnd.api+json'],
     }),
   );
-  app.use(router);
+  app.use(rootRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
-  app.use(cookieParser());
   //   start server
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
 };
-
-//   app.listen(PORT, (error) => {
-//     if (error) process.exit(1);
-//     console.log(`Server is running on port ${PORT}!`);
-//   });
-
-//   return app;
-// };

@@ -1,13 +1,10 @@
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 
 import { UsersCollection } from '../db/models/user.js';
 import createHttpError from 'http-errors';
 import { randomBytes } from 'crypto';
 import { SessionsCollection } from '../db/models/session.js';
-import { FIFTEEN_MINUTES, ONE_MONTH, SMTP } from '../constants/index.js';
-import { env } from '../utils/env.js';
-import { sendEmail } from '../utils/sendMail.js';
+import { FIFTEEN_MINUTES, ONE_MONTH } from '../constants/index.js';
 
 export const registerUser = async (payload) => {
   const user = await UsersCollection.findOne({ email: payload.email });
@@ -26,8 +23,8 @@ export const loginUser = async (payload) => {
   if (!user) {
     throw createHttpError(404, 'User not found');
   }
-  const isEqual = await bcrypt.compare(payload.password, user.password);
 
+  const isEqual = await bcrypt.compare(payload.password, user.password);
   if (!isEqual) {
     throw createHttpError(401, 'Unauthorized');
   }
@@ -45,12 +42,7 @@ export const loginUser = async (payload) => {
     refreshTokenValidUntil: new Date(Date.now() + ONE_MONTH),
   });
 };
-
-export const logoutUser = async (sessionId) => {
-  await SessionsCollection.deleteOne({ _id: sessionId });
-};
-
-const createSession = () => {
+export const createSession = () => {
   const accessToken = randomBytes(30).toString('base64');
   const refreshToken = randomBytes(30).toString('base64');
 
@@ -61,7 +53,6 @@ const createSession = () => {
     refreshTokenValidUntil: new Date(Date.now() + ONE_MONTH),
   };
 };
-
 export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
   const session = await SessionsCollection.findOne({
     _id: sessionId,
@@ -89,35 +80,6 @@ export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
   });
 };
 
-export const requestResetToken = async (email) => {
-  const user = await UsersCollection.findOne({ email });
-  if (!user) {
-    throw createHttpError(404, 'User not found');
-  }
-  const resetToken = jwt.sign(
-    {
-      sub: user._id,
-      email,
-    },
-    env('JWT_SECRET'),
-    {
-      expiresIn: '15m',
-    },
-  );
-
-  try {
-    await sendEmail({
-      from: env('SMTP_FROM'),
-      to: email,
-      subject: 'Reset your password',
-      html: `<p>Click <a href="${env(
-        'APP_DOMAIN',
-      )}auth/reset-pwd?token=${resetToken}">here</a> to reset your password!</p>`,
-    });
-  } catch (err) {
-    throw createHttpError(
-      500,
-      'Failed to send the email, please try again later.',
-    );
-  }
+export const logoutUser = async (sessionId) => {
+  await SessionsCollection.deleteOne({ _id: sessionId });
 };
