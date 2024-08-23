@@ -13,32 +13,28 @@ import {
   updateContactSchema,
 } from '../validation/contacts.js';
 import { validateMongoId } from '../middlewares/validateMongoId.js';
+import { authenticate } from '../middlewares/authenticate.js';
 
 const contactsRouter = Router();
-contactsRouter.use('/contacts/:contactId', validateMongoId('contactId'));
+contactsRouter.use('/:contactId', validateMongoId('contactId'));
+contactsRouter.use('/', authenticate);
 
-contactsRouter.get('/contacts', ctrlWrapper(getAllContactsController));
+contactsRouter.get('/', ctrlWrapper(getAllContactsController));
 
-contactsRouter.get(
-  '/contacts/:contactId',
-  ctrlWrapper(getContactByIdController),
-);
+contactsRouter.get('/:contactId', ctrlWrapper(getContactByIdController));
 
 contactsRouter.post(
-  '/contacts',
+  '/',
   validateBody(createContactSchema),
   ctrlWrapper(createContactController),
 );
 
 contactsRouter.patch(
-  '/contacts/:contactId',
+  '/:contactId',
   validateBody(updateContactSchema),
   ctrlWrapper(patchContactController),
 );
 
-contactsRouter.delete(
-  '/contacts/:contactId',
-  ctrlWrapper(deleteContactController),
-);
+contactsRouter.delete('/:contactId', ctrlWrapper(deleteContactController));
 
 export default contactsRouter;
