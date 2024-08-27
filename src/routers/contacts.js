@@ -1,3 +1,5 @@
+import express from 'express';
+
 import { Router } from 'express';
 import { ctrlWrapper } from '../middlewares/ctrlWrapper.js';
 import {
@@ -15,7 +17,10 @@ import {
 import { validateMongoId } from '../middlewares/validateMongoId.js';
 import { authenticate } from '../middlewares/authenticate.js';
 
+const jsonParser = express.json();
+
 const contactsRouter = Router();
+
 contactsRouter.use('/:contactId', validateMongoId('contactId'));
 contactsRouter.use('/', authenticate);
 
@@ -25,6 +30,7 @@ contactsRouter.get('/:contactId', ctrlWrapper(getContactByIdController));
 
 contactsRouter.post(
   '/',
+  jsonParser,
   validateBody(createContactSchema),
   ctrlWrapper(createContactController),
 );

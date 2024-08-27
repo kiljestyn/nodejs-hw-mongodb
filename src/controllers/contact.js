@@ -22,6 +22,7 @@ export const getAllContactsController = async (req, res) => {
     sortBy,
     sortOrder,
     filter,
+    userId: req.user._id,
   });
 
   res.status(200).json({
@@ -33,8 +34,9 @@ export const getAllContactsController = async (req, res) => {
 
 export const getContactByIdController = async (req, res, next) => {
   const contactId = req.params.contactId;
+  const userId = req.user._id;
 
-  if (!mongoose.isValidObjectId(contactId)) {
+  if (!mongoose.isValidObjectId(contactId, userId)) {
     return res.status(404).json({
       status: 404,
       message: `Id ${contactId} is not valid`,
@@ -58,7 +60,8 @@ export const getContactByIdController = async (req, res, next) => {
 
 // POST
 export const createContactController = async (req, res) => {
-  const contact = await createContact(req.body);
+  const { body } = req;
+  const contact = await createContact(body, req.user._id);
 
   res.status(201).json({
     status: 201,
@@ -70,11 +73,13 @@ export const createContactController = async (req, res) => {
 // PATCH
 export const patchContactController = async (req, res, next) => {
   const contactId = req.params.contactId;
+  const { body } = req;
+  const userId = req.user._id;
   // if (!isValidObjectId(contactId)) {
   //   return next(createHttpError(400, 'Invalid id!'));
   // }
 
-  const contact = await upsertContact(contactId, req.body);
+  const contact = await upsertContact(contactId, userId, body);
 
   if (!contact) {
     next(createHttpError(404, 'Contact not found'));
@@ -92,7 +97,8 @@ export const patchContactController = async (req, res, next) => {
 // DELETE
 export const deleteContactController = async (req, res, next) => {
   const contactId = req.params.contactId;
-  const contact = await deleteContact(contactId);
+  const userId = req.user._id;
+  const contact = await deleteContact(contactId, userId);
 
   if (!contact) {
     next(createHttpError(404, 'Contact not found'));
