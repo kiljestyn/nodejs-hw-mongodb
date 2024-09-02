@@ -1,6 +1,8 @@
 import { KEYS_OF_CONTACT, SORT_ORDER } from '../constants/index.js';
 import { ContactsCollection } from '../db/contact.js';
 import { calculatePaginationData } from '../utils/calculatePaginationData.js';
+// import { saveFile } from '../utils/saveFile.js';
+import { saveToCloudinary } from '../utils/saveToCloudinary.js';
 
 export const getAllContacts = async ({
   page = 1,
@@ -53,8 +55,17 @@ export const getContactById = async (contactId, userId) => {
   return await ContactsCollection.findOne({ _id: contactId, userId: userId });
 };
 
-export const createContact = async (payload, userId) =>
-  await ContactsCollection.create({ ...payload, userId: userId });
+export const createContact = async ({ photo, ...payload }, userId) => {
+  const url = await saveToCloudinary(photo);
+
+  const contact = await ContactsCollection.create({
+    ...payload,
+    userId: userId,
+    photoUrl: url,
+  });
+
+  return contact;
+};
 
 export const upsertContact = async (
   contactId,

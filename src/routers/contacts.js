@@ -16,6 +16,7 @@ import {
 } from '../validation/contacts.js';
 import { validateMongoId } from '../middlewares/validateMongoId.js';
 import { authenticate } from '../middlewares/authenticate.js';
+import { upload } from '../middlewares/upload.js';
 
 const jsonParser = express.json();
 
@@ -30,6 +31,7 @@ contactsRouter.get('/:contactId', ctrlWrapper(getContactByIdController));
 
 contactsRouter.post(
   '/',
+  upload.single('photo'),
   jsonParser,
   validateBody(createContactSchema),
   ctrlWrapper(createContactController),
@@ -37,6 +39,8 @@ contactsRouter.post(
 
 contactsRouter.patch(
   '/:contactId',
+  upload.single('photo'),
+
   validateBody(updateContactSchema),
   ctrlWrapper(patchContactController),
 );

@@ -7,6 +7,7 @@ import { errorHandler } from './middlewares/errorHandler.js';
 
 import rootRouter from './routers/index.js';
 import cookieParser from 'cookie-parser';
+import { UPLOAD_DIR } from './constants/index.js';
 
 const PORT = Number(env('PORT', '3000'));
 
@@ -29,6 +30,7 @@ export const setupServer = () => {
       type: ['application/json', 'application/vnd.api+json'],
     }),
   );
+  app.use('/uploads', express.static(UPLOAD_DIR));
   app.use(rootRouter);
 
   app.use(notFoundHandler);

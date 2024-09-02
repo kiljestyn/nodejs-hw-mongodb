@@ -10,6 +10,10 @@ import {
 import { parsePaginationParams } from '../utils/parsePaginationParams.js';
 import { parseSortParams } from '../utils/parseSortParams.js';
 import { parseFilterParams } from '../utils/parseFilterParams.js';
+import { saveToCloudinary } from '../utils/saveToCloudinary.js';
+import { saveFileToLocalMachine } from '../utils/saveFileToLocalMachine.js';
+import { ENV_VARS } from '../constants/index.js';
+import { env } from '../utils/env.js';
 
 export const getAllContactsController = async (req, res) => {
   const { page, perPage } = parsePaginationParams(req.query);
@@ -60,8 +64,8 @@ export const getContactByIdController = async (req, res, next) => {
 
 // POST
 export const createContactController = async (req, res) => {
-  const { body } = req;
-  const contact = await createContact(body, req.user._id);
+  const { body, file } = req;
+  const contact = await createContact({ ...body, photo: file }, req.user._id);
 
   res.status(201).json({
     status: 201,
@@ -72,14 +76,24 @@ export const createContactController = async (req, res) => {
 
 // PATCH
 export const patchContactController = async (req, res, next) => {
-  const contactId = req.params.contactId;
-  const { body } = req;
+  const { contactId } = req.params;
   const userId = req.user._id;
-  // if (!isValidObjectId(contactId)) {
-  //   return next(createHttpError(400, 'Invalid id!'));
-  // }
+  const photo = req.file;
 
-  const contact = await upsertContact(contactId, userId, body);
+  let photoUrl;
+
+  if (photo) {
+    if (env(ENV_VARS.ENABLE_CLOUDINARY) === 'true') {
+      photoUrl = await saveToCloudinary(photo);
+    } else {
+      photoUrl = await saveFileToLocalMachine(photo);
+    }
+  }
+
+  const contact = await upsertContact(contactId, userId, {
+    ...req.body,
+    photo: photoUrl,
+  });
 
   if (!contact) {
     next(createHttpError(404, 'Contact not found'));

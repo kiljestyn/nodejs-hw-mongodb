@@ -13,6 +13,7 @@ const contactSchema = new Schema(
       default: 'personal',
     },
     userId: { type: Schema.ObjectId, required: false },
+    photoUrl: { type: String },
     // createdAt: { Date },
     // updatedAt: { Date },
   },
