@@ -39,3 +39,4 @@ export const ENV_VARS = {
   CLOUDINARY_API_SECRET: 'CLOUDINARY_API_SECRET',
   IS_CLOUDINARY_ENABLED: 'IS_CLOUDINARY_ENABLED',
 };
+export const SWAGGER_PATH = path.join(process.cwd(), 'docs', 'swagger.json');

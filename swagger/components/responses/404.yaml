@@ -1,0 +1,31 @@
+description: 'NotFoundError'
+content:
+  application/json:
+    schema:
+      type: object
+      required:
+        - status
+        - message
+        - data
+        - errors
+      properties:
+        status:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: NotFoundError
+        data:
+          type: object
+          required:
+            - message
+          properties:
+            message:
+              type: string
+              example: 'Contact not found'
+        errors:
+          type: array
+          items:
+            type: string
+            example: '"\"phoneNumber\" is  required'
+          example: []
